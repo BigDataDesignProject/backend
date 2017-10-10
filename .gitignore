@@ -1,0 +1,12 @@
+*.swo
+*.swp
+
+node_modules/
+npm-debug.log
+.npm
+
+logs/
+*.log*
+
+# Compiled Output
+bin/**
