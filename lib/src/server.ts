@@ -2,12 +2,14 @@ import * as Koa from 'koa';
 import * as KoaCompose from 'koa-compose';
 
 import config from './config';
+import salesRoutes from './routes/sales';
 
 const app = new Koa();
 
 const getMiddleware = () => {
     return KoaCompose([
-
+        salesRoutes.routes(),
+        salesRoutes.allowedMethods(),
     ]);
 };
 

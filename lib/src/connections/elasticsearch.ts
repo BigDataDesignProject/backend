@@ -10,7 +10,6 @@ const connect = async () => {
 const createClient = () => {
     return new Client({
         host: config.URLs.elasticsearch,
-        log: 'warning',
     });
 };
 

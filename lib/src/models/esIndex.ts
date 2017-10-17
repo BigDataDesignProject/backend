@@ -1,13 +1,17 @@
 import { Client } from 'elasticsearch';
+import * as fs from 'fs';
 
 import { createClient } from '../connections/elasticsearch';
 import Field from '../interfaces/field';
+
+const csv = require('csv');
 
 abstract class ESIndex {
     private client: Client;
     private type = 'document';
 
     protected abstract index: string;
+    protected abstract headers: string[];
     protected abstract fields: Field[];
     protected abstract computeKey: (data: any) => string;
 
@@ -21,6 +25,54 @@ abstract class ESIndex {
         if (!await this.mappingsExists()) {
             await this.putMappings();
         }
+    }
+
+    public upload (fileName: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const file = fs.createReadStream(fileName);
+            const parser = csv.parse({ delimiter: '\t', columns: this.headers });
+            const transformer = csv.transform(((row: any) => this.transformRowToDoc(row)));
+
+            let docs: any[] = [];
+            const stream = file
+            .pipe(parser)
+            .pipe(transformer)
+            .on('readable', (doc: any) => {
+                doc = transformer.read();
+                while (doc) {
+                    docs.push(doc);
+                    doc = transformer.read();
+                }
+
+                if (docs.length >= 10000) {
+                    this.bulkInsert(docs);
+                    docs = [];
+                }
+            })
+            .on('error', (err: any) => {
+                reject(err);
+            })
+            .on('finish', async () => {
+                if (docs.length > 0) {
+                    await this.bulkInsert(docs);
+                }
+                resolve();
+            });
+        });
+    }
+
+    private async bulkInsert(docs: any[]) {
+        const body = [];
+        for (const doc of docs) {
+            body.push({ index: { _id: this.computeKey(doc) } });
+            body.push(doc);
+        }
+
+        await this.client.bulk({
+            index: this.index,
+            type: this.type,
+            body: body,
+        });
     }
 
     private async putMappings() {
@@ -66,6 +118,14 @@ abstract class ESIndex {
             return mapping;
         }, {} as {[key: string]: any});
     }
+
+    private transformRowToDoc (row: any) {
+        return this.fields.reduce((doc, field) => {
+            doc[field.name] = field.transform(row);
+            return doc;
+        }, <any> {});
+    }
+
 }
 
 export default ESIndex;

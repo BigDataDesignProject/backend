@@ -2,7 +2,7 @@ interface Field {
     name: string;
     type: string;
     format?: string;
-    transform?: (data: any) => any;
+    transform: (row: any) => any;
 }
 
 export default Field;

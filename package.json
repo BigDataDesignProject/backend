@@ -23,9 +23,11 @@
     "@types/koa": "2.0.39",
     "@types/koa-compose": "^3.2.2",
     "@types/koa-router": "7.0.23",
+    "async-busboy": "^0.6.2",
     "csv": "^1.1.1",
     "elasticsearch": "13.3.1",
     "koa": "2.3.0",
+    "koa-body": "^2.5.0",
     "koa-compose": "^4.0.0",
     "koa-router": "7.2.1"
   },
