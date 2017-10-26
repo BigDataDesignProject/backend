@@ -1,4 +1,5 @@
 import * as date from '../utils/date';
+import { geocode } from '../utils/geocode';
 import ESIndex from './esIndex';
 
 class Inventory extends ESIndex {
@@ -36,6 +37,10 @@ class Inventory extends ESIndex {
             name: 'inventory',
             type: 'integer',
             transform: (row: any) => parseInt(row['inventory'], 10),
+        }, {
+            name: 'location',
+            type: 'geo_point',
+            transform: (row: any) => geocode(row['store']),
         },
     ];
 

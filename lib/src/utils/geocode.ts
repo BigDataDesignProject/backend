@@ -2,12 +2,12 @@ import * as fs from 'fs';
 
 const csv = require('csv');
 
-type ZipcodeToGeolocationMap = Map<string, {lat: number, lng: number}>;
+type ZipcodeToGeolocationMap = Map<string, {lat: number, lon: number}>;
 type StoreToZipcodeMap = Map<string, string>;
 
 const getZipcodeToGeolocation = () => {
     return new Promise<ZipcodeToGeolocationMap>((resolve, reject) => {
-        const zipcodesToGeolocation = new Map<string, {lat: number, lng: number}>();
+        const zipcodesToGeolocation = new Map<string, {lat: number, lon: number}>();
 
         const zipStream = fs.createReadStream('./res/zip_lat_long.txt');
         const parser = csv.parse({ delimiter: '\t', columns: true });
@@ -19,11 +19,11 @@ const getZipcodeToGeolocation = () => {
                 while (row) {
                     const zipcode = row['Zip_Code'];
                     const lat = row['zLatitude'];
-                    const lng = row['zLongitude'];
-                    if (zipcode !== '' && lat !== '' && lng !== '') {
+                    const lon = row['zLongitude'];
+                    if (zipcode !== '' && lat !== '' && lon !== '') {
                         zipcodesToGeolocation.set(zipcode, {
                             lat: Number.parseFloat(lat),
-                            lng: Number.parseFloat(lng),
+                            lon: Number.parseFloat(lon),
                         });
                     }
                     row = parser.read();
@@ -66,7 +66,7 @@ const getStoresToZipcode = () => {
     });
 };
 
-const storeToGeolocation = new Map<string, {lat: number, lng: number}>();
+const storeToGeolocation = new Map<string, {lat: number, lon: number}>();
 const initialize = async () => {
     const storesToZipcode = await getStoresToZipcode();
     const zipcodesToGeolocation = await getZipcodeToGeolocation();
@@ -74,7 +74,7 @@ const initialize = async () => {
     for (const [store, zipcode] of storesToZipcode.entries()) {
         const geolocation = zipcodesToGeolocation.has(zipcode)
                                 ? zipcodesToGeolocation.get(zipcode)
-                                : { lat: 0, lng: 0 };
+                                : { lat: 0, lon: 0 };
         storeToGeolocation.set(store, geolocation);
     }
 };

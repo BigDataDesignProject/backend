@@ -1,4 +1,5 @@
 import * as date from '../utils/date';
+import { geocode } from '../utils/geocode';
 import ESIndex from './esIndex';
 
 class Sales extends ESIndex {
@@ -49,6 +50,13 @@ class Sales extends ESIndex {
             name: 'sales',
             type: 'double',
             transform: (row: any) => parseFloat(row['sales']),
+        }, {
+            name: 'location',
+            type: 'geo_point',
+            transform: (row: any) => {
+                const store = parseInt(row['store'], 10).toString();
+                return geocode(store);
+            },
         },
     ];
 
